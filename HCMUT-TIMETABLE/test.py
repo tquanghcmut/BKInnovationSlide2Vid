@@ -5,12 +5,13 @@ from moviepy.editor import ImageSequenceClip, AudioFileClip, concatenate_videocl
 from gtts import gTTS
 import torch
 from transformers import BlipProcessor, BlipForConditionalGeneration
+from pdf2image import convert_from_path
 
 
 def images_from_folder(folder_path):
     image_files = [os.path.join(folder_path, file) for file in os.listdir(folder_path) if
                    file.lower().endswith(('.png', '.jpg', '.jpeg'))]
-    return sorted(image_files)  # Sắp xếp để đảm bảo thứ tự
+    return sorted(image_files)  # Sort to ensure order
 
 
 def describe_images(image_files):
@@ -57,11 +58,26 @@ def create_video(image_files, audio_files, output_file, fps=24):
                                fps=fps)  # Set the fps for the final video
 
 
+def convert_pdf_to_images(pdf_path, output_folder):
+    # Ensure the output folder exists
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Convert PDF to images
+    images = convert_from_path(pdf_path)
+    for i, image in enumerate(images):
+        image_path = os.path.join(output_folder, f"page_{i + 1}.png")
+        image.save(image_path, 'PNG')
+
+    return output_folder
+
+
 if __name__ == "__main__":
-    folder_path = "/Users/twang/PycharmProjects/HCMUT-TIMETABLE/image"  # Đường dẫn đến thư mục chứa ảnh
+    pdf_path = "/Users/vinhvu/BKInnovationSlide2Vid/HCMUT-TIMETABLE/Chapter_0_Complex_numbers.pdf"  # Path to your PDF file
+    output_folder = "/Users/vinhvu/BKInnovationSlide2Vid/HCMUT-TIMETABLE/image"  # Path to save the images
     output_file = "output_demo.mp4"
 
-    image_files = images_from_folder(folder_path)
+    convert_pdf_to_images(pdf_path, output_folder)
+    image_files = images_from_folder(output_folder)
 
     descriptions = describe_images(image_files)
     print(descriptions)
